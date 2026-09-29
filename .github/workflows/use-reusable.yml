@@ -70,11 +70,21 @@ jobs:
       artifact_name: dist-files
     
   report:
-    needs: [lint, deploy]
-    if: failure()
+    needs: [lint, test, build, deploy]
+    if: ${{ always() }}
     runs-on: ubuntu-latest
+
     steps:
-      - name: Output information
+      - name: Show results
+        env:
+          LINT_RESULT: ${{ needs.lint.result }}
+          TEST_RESULT: ${{ needs.test.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          DEPLOY_JOB_RESULT: ${{ needs.deploy.result }}
+          DEPLOY_OUTPUT: ${{ needs.deploy.outputs.result }}
         run: |
-          echo "Something went wrong"
-          echo "${{ toJSON(github)}}"
+          echo "Lint result: $LINT_RESULT"
+          echo "Test result: $TEST_RESULT"
+          echo "Build result: $BUILD_RESULT"
+          echo "Deploy job result: $DEPLOY_JOB_RESULT"
+          echo "Deploy custom output: $DEPLOY_OUTPUT"

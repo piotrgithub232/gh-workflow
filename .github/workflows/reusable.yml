@@ -9,15 +9,39 @@ on:
         default: dist-files
         type: string
 
+    outputs:
+      result:
+        description: Result of the deployment
+        value: ${{ jobs.deploy.outputs.outcome }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    outputs:
+      outcome: ${{ steps.set-result.outputs.result }}
+
     steps:
       - name: Download build artifact
+        id: download-artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.artifact_name }}
           path: dist
 
       - name: Output information
+        id: deploy-step
         run: echo "Deploying & uploading"
+
+      - name: Set deployment result
+        id: set-result
+        if: ${{ always() }}
+        env:
+          DOWNLOAD_RESULT: ${{ steps.download-artifact.outcome }}
+          DEPLOY_RESULT: ${{ steps.deploy-step.outcome }}
+        run: |
+          if [[ "$DOWNLOAD_RESULT" == "success" && "$DEPLOY_RESULT" == "success" ]]; then
+            echo "result=success" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=failure" >> "$GITHUB_OUTPUT"
+          fi
