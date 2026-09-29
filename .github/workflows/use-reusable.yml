@@ -69,7 +69,7 @@ jobs:
     with:
       artifact_name: dist-files
     
-  report:
+  print_report:
     needs: [lint, test, build, deploy]
     if: ${{ always() }}
     runs-on: ubuntu-latest
